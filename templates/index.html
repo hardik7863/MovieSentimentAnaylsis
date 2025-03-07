@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Review Sentiment Analysis</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GSAP for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <!-- GSAP ScrollToPlugin for smooth scrolling -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollToPlugin.min.js"></script>
+    <!-- Lottie for animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.10.0/lottie.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>
+    <!-- Confetti effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --accent-color: #fd79a8;
+            --light-color: #f8f9fa;
+            --dark-color: #1a1a2e;
+            --success-color: #00b894;
+            --danger-color: #ff7675;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+            --dark-bg: #121212;
+            --dark-card: #1e1e1e;
+            --text-dark: #e0e0e0;
+        }
+
+        .dark-mode {
+            --primary-color: #bb86fc;
+            --secondary-color: #03dac6;
+            --accent-color: #cf6679;
+            --light-color: #1e1e1e;
+            --dark-color: #f8f9fa;
+            --glass-bg: rgba(30, 30, 30, 0.7);
+            --box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --text-light: #1a1a2e;
+            background: var(--dark-bg) !important;
+            color: var(--text-dark) !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            transition: var(--transition);
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .hero-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            padding: 20px;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+
+        /* Form Section */
+        .analysis-section {
+            padding: 80px 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card {
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 40px;
+            margin-bottom: 40px;
+            transition: var(--transition);
+        }
+
+        .dark-mode .card {
+            background: var(--dark-card);
+        }
+
+        .card h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            border: 1px solid #ddd;
+            background: var(--glass-bg);
+            backdrop-filter: blur(4px);
+            color: var(--dark-color);
+            font-size: 1rem;
+            resize: none;
+            transition: var(--transition);
+        }
+
+        .dark-mode textarea {
+            color: var(--text-dark);
+            border-color: #444;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: block;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active {
+            transform: translateY(-1px);
+        }
+
+        button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.5s ease-out;
+        }
+
+        button:hover:before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        /* Scroll Down Animation */
+        .scroll-down {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: white;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .scroll-down:hover {
+            opacity: 1;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0) translateX(-50%);
+            }
+            40% {
+                transform: translateY(-20px) translateX(-50%);
+            }
+            60% {
+                transform: translateY(-10px) translateX(-50%);
+            }
+        }
+
+        /* Results Section */
+        .results-card {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .result-emoji {
+            font-size: 5rem;
+            margin-bottom: 20px;
+            display: inline-block;
+            transition: var(--transition);
+        }
+
+        .result-title {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .result-score {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.8;
+        }
+
+        .result-bar-container {
+            height: 20px;
+            background-color: #eee;
+            border-radius: 10px;
+            margin: 30px 0;
+            overflow: hidden;
+        }
+
+        .dark-mode .result-bar-container {
+            background-color: #333;
+        }
+
+        .result-bar {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s ease-in-out;
+        }
+
+        .positive-result .result-bar {
+            background: linear-gradient(to right, #00b894, #00cec9);
+        }
+
+        .negative-result .result-bar {
+            background: linear-gradient(to right, #ff7675, #d63031);
+        }
+
+        /* Loader */
+        .loader-container {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .loader {
+            display: inline-block;
+            width: 50px;
+            height: 50px;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 60px;
+            height: 30px;
+            background: var(--glass-bg);
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            backdrop-filter: blur(4px);
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .theme-toggle-ball {
+            width: 20px;
+            height: 20px;
+            background: var(--dark-color);
+            border-radius: 50%;
+            transform: translateX(0);
+            transition: var(--transition);
+        }
+
+        .dark-mode .theme-toggle-ball {
+            transform: translateX(30px);
+            background: var(--light-color);
+        }
+
+        /* Feedback Box */
+        .feedback-box {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            transition: var(--transition);
+            z-index: 1000;
+        }
+
+        .feedback-box:hover {
+            transform: scale(1.1);
+        }
+
+        .feedback-box i {
+            font-size: 1.5rem;
+        }
+
+        .feedback-content {
+            position: fixed;
+            bottom: 100px;
+            right: 30px;
+            width: 300px;
+            background: var(--light-color);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--box-shadow);
+            display: none;
+            z-index: 1000;
+        }
+
+        .dark-mode .feedback-content {
+            background: var(--dark-card);
+        }
+
+        .feedback-content h3 {
+            margin-bottom: 15px;
+        }
+
+        .feedback-text {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        .dark-mode .feedback-text {
+            background: #333;
+            color: var(--text-dark);
+            border-color: #444;
+        }
+
+        .feedback-submit {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .result-emoji {
+                font-size: 4rem;
+            }
+
+            .result-title {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .card {
+                padding: 15px;
+            }
+
+            .result-emoji {
+                font-size: 3rem;
+            }
+
+            .result-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <div class="theme-toggle" id="themeToggle">
+        <div class="theme-toggle-ball" id="themeToggleBall"></div>
+    </div>
+
+    <!-- Hero Section with Particles -->
+    <section class="hero" id="hero">
+        <div class="hero-particles" id="heroParticles"></div>
+        <div class="hero-content">
+            <h1>Movie Review Sentiment Analysis</h1>
+            <p>Discover the emotional tone behind any movie review instantly with our advanced AI analysis.</p>
+            <button id="getStartedBtn">Get Started</button>
+        </div>
+        <div class="scroll-down" id="scrollDown">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Analysis Section -->
+    <section class="analysis-section" id="analysisSection">
+        <div class="container">
+            <div class="card" id="analysisCard">
+                <h2>Analyze Your Movie Review</h2>
+                <form id="sentimentForm">
+                    <div class="input-group">
+                        <label for="reviewInput">Paste your movie review below:</label>
+                        <textarea id="reviewInput" name="review" placeholder="Ex: The movie was absolutely fantastic! Great character development, stunning visuals, and an engaging plot that kept me on the edge of my seat..."></textarea>
+                    </div>
+                    <button type="submit" id="analyzeBtn">
+                        <span>Analyze Sentiment</span>
+                    </button>
+                </form>
+                <div class="loader-container" id="loaderContainer">
+                    <div id="lottieLoader" class="loader"></div>
+                    <p>Analyzing sentiment...</p>
+                </div>
+            </div>
+
+            <div class="card results-card" id="resultsCard">
+                <div class="result-emoji" id="resultEmoji"></div>
+                <h2 class="result-title" id="resultTitle"></h2>
+                <p class="result-score" id="resultScore"></p>
+                <div class="result-bar-container">
+                    <div class="result-bar" id="resultBar"></div>
+                </div>
+                <button id="analyzeAnotherBtn">Analyze Another Review</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feedback Box -->
+    <div class="feedback-box" id="feedbackBox">
+        <i class="fas fa-comment"></i>
+    </div>
+
+    <div class="feedback-content" id="feedbackContent">
+        <h3>Your Feedback</h3>
+        <textarea class="feedback-text" id="feedbackText" placeholder="Tell us what you think..."></textarea>
+        <button class="feedback-submit" id="feedbackSubmit">Submit</button>
+    </div>
+
+    <script>
+        // DOM Elements
+        const hero = document.getElementById('hero');
+        const heroParticles = document.getElementById('heroParticles');
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const scrollDown = document.getElementById('scrollDown');
+        const analysisSection = document.getElementById('analysisSection');
+        const sentimentForm = document.getElementById('sentimentForm');
+        const reviewInput = document.getElementById('reviewInput');
+        const loaderContainer = document.getElementById('loaderContainer');
+        const resultsCard = document.getElementById('resultsCard');
+        const resultEmoji = document.getElementById('resultEmoji');
+        const resultTitle = document.getElementById('resultTitle');
+        const resultScore = document.getElementById('resultScore');
+        const resultBar = document.getElementById('resultBar');
+        const analyzeAnotherBtn = document.getElementById('analyzeAnotherBtn');
+        const themeToggle = document.getElementById('themeToggle');
+        const feedbackBox = document.getElementById('feedbackBox');
+        const feedbackContent = document.getElementById('feedbackContent');
+        const feedbackSubmit = document.getElementById('feedbackSubmit');
+
+        // Create particles for hero background
+        function createParticles() {
+            heroParticles.innerHTML = '';
+            const particleCount = Math.floor(window.innerWidth / 10);
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 8 + 2;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const opacity = Math.random() * 0.5 + 0.1;
+                const animDuration = Math.random() * 20 + 10;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.top = `${posY}%`;
+                particle.style.opacity = opacity;
+                
+                heroParticles.appendChild(particle);
+                
+                // Animate particles
+                gsap.to(particle, {
+                    y: `${Math.random() * 40 - 20}%`,
+                    x: `${Math.random() * 40 - 20}%`,
+                    opacity: Math.random() * 0.5 + 0.1,
+                    duration: animDuration,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: "sine.inOut"
+                });
+            }
+        }
+
+        // Initialize Lottie animation for loader
+        let loaderAnimation;
+        
+        function initLoader() {
+            loaderAnimation = lottie.loadAnimation({
+                container: document.getElementById('lottieLoader'),
+                renderer: 'svg',
+                loop: true,
+                autoplay: false,
+                path: 'https://assets9.lottiefiles.com/packages/lf20_x62chJ.json'
+            });
+        }
+
+        // Smooth scroll to analysis section with focus on textarea
+        function scrollToAnalysis() {
+            // First, animate the scroll
+            gsap.to(window, {
+                duration: 1.2,
+                scrollTo: {
+                    y: analysisSection,
+                    offsetY: 0
+                },
+                ease: "power2.inOut",
+                onComplete: function() {
+                    // Then focus on the review input textarea after scrolling completes
+                    gsap.fromTo('#analysisCard', 
+                        { y: 30, opacity: 0.8 }, 
+                        { y: 0, opacity: 1, duration: 0.5, onComplete: function() {
+                            // Focus the textarea
+                            reviewInput.focus();
+                        }}
+                    );
+                }
+            });
+            
+            // Highlight the card during animation
+            gsap.fromTo('#analysisCard', 
+                { boxShadow: 'var(--box-shadow)' }, 
+                { 
+                    boxShadow: '0 10px 50px rgba(108, 92, 231, 0.4)',
+                    duration: 1.5,
+                    yoyo: true, 
+                    repeat: 1
+                }
+            );
+        }
+
+        // Toggle dark mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+        }
+
+        // Check saved theme preference
+        function checkThemePreference() {
+            const darkMode = localStorage.getItem('darkMode') === 'true';
+            if (darkMode) {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        // Show confetti effect for positive sentiment
+        function showConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        // Shake effect for negative sentiment
+        function shakeEffect(element) {
+            gsap.to(element, {
+                x: 10,
+                duration: 0.1,
+                repeat: 5,
+                yoyo: true,
+                ease: "power1.inOut"
+            });
+        }
+
+        // Handle form submission
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(sentimentForm);
+            const reviewText = formData.get('review').trim();
+            
+            if (!reviewText) {
+                alert('Please enter a movie review');
+                return;
+            }
+            
+            // Show loader and hide form
+            loaderContainer.style.display = 'block';
+            loaderAnimation.play();
+            
+            // AJAX request to Flask backend
+            $.ajax({
+                url: '/classify',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    // Hide loader
+                    loaderContainer.style.display = 'none';
+                    loaderAnimation.stop();
+                    
+                    if (response.error) {
+                        alert(response.error);
+                        return;
+                    }
+                    
+                    // Show results
+                    const sentiment = response.sentiment;
+                    const score = response.score;
+                    
+                    resultsCard.style.display = 'block';
+                    
+                    // Update results content
+                    if (sentiment === 'Positive') {
+                        resultEmoji.innerHTML = '😄';
+                        resultTitle.innerHTML = 'Positive Review!';
+                        resultScore.innerHTML = `Sentiment Score: ${(score * 100).toFixed(1)}%`;
+                        resultBar.style.width = `${score * 100}%`;
+                        
+                        resultsCard.classList.add('positive-result');
+                        resultsCard.classList.remove('negative-result');
+                        
+                        // Show confetti for positive reviews
+                        showConfetti();
+                    } else {
+                        resultEmoji.innerHTML = '😔';
+                        resultTitle.innerHTML = 'Negative Review';
+                        resultScore.innerHTML = `Sentiment Score: ${((1 - score) * 100).toFixed(1)}%`;
+                        resultBar.style.width = `${(1 - score) * 100}%`;
+                        
+                        resultsCard.classList.add('negative-result');
+                        resultsCard.classList.remove('positive-result');
+                        
+                        // Shake effect for negative reviews
+                        shakeEffect(resultsCard);
+                    }
+                    
+                    // Animate results card
+                    gsap.fromTo(resultsCard, {
+                        y: 50,
+                        opacity: 0
+                    }, {
+                        y: 0,
+                        opacity: 1,
+                        duration: 0.5,
+                        ease: "power2.out"
+                    });
+                    
+                    // Hide analysis card
+                    gsap.to('#analysisCard', {
+                        opacity: 0,
+                        y: -20,
+                        display: 'none',
+                        duration: 0.3
+                    });
+                },
+                error: function(xhr, status, error) {
+                    // Hide loader
+                    loaderContainer.style.display = 'none';
+                    loaderAnimation.stop();
+                    
+                    alert('Error: ' + error);
+                }
+            });
+        }
+
+        // Reset form and show analysis card again
+        function resetAnalysis() {
+            sentimentForm.reset();
+            
+            // Hide results card
+            gsap.to('#resultsCard', {
+                opacity: 0,
+                y: 20,
+                display: 'none',
+                duration: 0.3
+            });
+            
+            // Show analysis card
+            gsap.fromTo('#analysisCard', {
+                opacity: 0,
+                y: -20
+            }, {
+                opacity: 1,
+                y: 0,
+                display: 'block',
+                duration: 0.5,
+                delay: 0.3,
+                onComplete: function() {
+                    // Focus the textarea
+                    reviewInput.focus();
+                }
+            });
+        }
+
+        // Toggle feedback box
+        function toggleFeedback() {
+            const isOpen = feedbackContent.style.display === 'block';
+            
+            if (isOpen) {
+                gsap.to(feedbackContent, {
+                    opacity: 0,
+                    y: 20,
+                    duration: 0.3,
+                    onComplete: () => {
+                        feedbackContent.style.display = 'none';
+                    }
+                });
+            } else {
+                feedbackContent.style.display = 'block';
+                gsap.fromTo(feedbackContent, {
+                    opacity: 0,
+                    y: 20
+                }, {
+                    opacity: 1,
+                    y: 0,
+                    duration: 0.3
+                });
+            }
+        }
+
+        // Handle feedback submission
+        function submitFeedback() {
+            const feedback = document.getElementById('feedbackText').value;
+            
+            if (feedback.trim() === '') {
+                alert('Please enter your feedback');
+                return;
+            }
+            
+            alert('Thank you for your feedback!');
+            document.getElementById('feedbackText').value = '';
+            toggleFeedback();
+        }
+
+        // Enhanced initial animation sequence
+        function playHeroAnimation() {
+            // Fade and slide in hero content
+            gsap.fromTo('.hero-content', {
+                opacity: 0,
+                y: 30
+            }, {
+                opacity: 1,
+                y: 0,
+                duration: 1,
+                delay: 0.5
+            });
+            
+            // Fade in scroll indicator
+            gsap.fromTo('.scroll-down', {
+                opacity: 0,
+            }, {
+                opacity: 0.7,
+                duration: 1,
+                delay: 1.5
+            });
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            initLoader();
+            checkThemePreference();
+            playHeroAnimation();
+            
+            // Make sure analysis section is visible but start with subtle entrance animation
+            gsap.set(analysisSection, {
+                opacity: 1
+            });
+            
+            gsap.fromTo('#analysisCard', {
+                opacity: 0,
+                y: 30
+            }, {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                scrollTrigger: {
+                    trigger: analysisSection,
+                    start: 'top 80%',
+                    end: 'top 50%',
+                    scrub: false
+                }
+            });
+        });
+
+        // Button event listeners
+        getStartedBtn.addEventListener('click', scrollToAnalysis);
+        scrollDown.addEventListener('click', scrollToAnalysis);
+        sentimentForm.addEventListener('submit', handleFormSubmit);
+        analyzeAnotherBtn.addEventListener('click', resetAnalysis);
+        themeToggle.addEventListener('click', toggleDarkMode);
+        feedbackBox.addEventListener('click', toggleFeedback);
+        feedbackSubmit.addEventListener('click', submitFeedback);
+
+        // Resize event for particles
+        window.addEventListener('resize', createParticles);
+    </script>
+</body>
+</html>
